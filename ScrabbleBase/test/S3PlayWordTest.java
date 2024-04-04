@@ -177,10 +177,10 @@ public class S3PlayWordTest {
         assertTrue("Incorrect Error Message provided.", message.getErrorMessage().contains("The playerId does not exist.") );
 
 
-        //Part 4 - Invalid player for the game
-        request = new PlayWordRequest(0, 2, spaces);
-		message = new Message();
-			       
+       //Part 4 - Invalid player for the game
+        request = new PlayWordRequest(3, 2, spaces);
+        message = new Message();
+                   
         game = GameController.playWord(message, request);
 
         assertTrue("Service should have failed, playerId is not valid", message.getErrorMessage().size() > 0 );

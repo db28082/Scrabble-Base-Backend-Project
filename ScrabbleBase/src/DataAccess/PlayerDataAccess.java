@@ -57,7 +57,51 @@ public class PlayerDataAccess {
 	}
 
 	public static PlayerDataObject createPlayer(PlayerDataObject data) {
-		//This needs to be implemented.
-        return null;
+		Message errorMessage = new Message();
+    		if (!isValidUsername(data.userName)) {
+        	errorMessage.addErrorMessage("The username is invalid.");
+    	}
+
+   	 if (!isUniqueUsername(data.userName)) {
+     	   errorMessage.addErrorMessage("The username is already taken.");
+   	 }
+
+   	 if (!isValidPassword(data.password)) {
+    	    errorMessage.addErrorMessage("The password is invalid.");
+  	  }
+
+   	 if (errorMessage.getErrorMessage().size() > 0) {
+       	 // If there are error messages, return null indicating failure
+        	return null;
+    	}
+
+   	 // Generate new player ID
+  	  int playerId = getNextId();
+  	  // Create new player object
+  	  PlayerDataObject newPlayer = new PlayerDataObject(playerId, data.userName, data.password);
+   	 // Add new player to the list
+   	 players.add(newPlayer);
+  	  // Return the newly created player object
+  	  return newPlayer;
+	}
+	
+	//Methods to test the validity and uniqueness of the username and password
+	private static boolean isValidPassword(String password) {
+		// Password should be between 6 and 18 characters and can only contain numbers or letters
+		return password.matches("[a-zA-Z0-9]{6,18}");
+	}
+
+	private static boolean isValidUsername(String username) {
+    		// Username should be between 6 and 18 characters and can only contain numbers or letters
+    		return username.matches("[a-zA-Z0-9]{6,18}");
+	}
+
+	private static boolean isUniqueUsername(String username) {
+		for (PlayerDataObject player : players) {
+			if (player.userName.equals(username)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

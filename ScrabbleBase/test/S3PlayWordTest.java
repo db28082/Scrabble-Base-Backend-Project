@@ -32,8 +32,6 @@ public class S3PlayWordTest {
 
     }	
 
-
-   
 	/*
      * "Play Word - Valid"
      * "Call PlayWord game, player, and word.  - The word is not validated in this sprint."
@@ -65,7 +63,6 @@ public class S3PlayWordTest {
         assertTrue("CurrentTurnPlayer should change from 1 to 2", game.getCurrentTurnPlayer() == 2);
 
 	}
-
 
 	/*
      * "Play Word - Verify the current turn alternates"
@@ -119,10 +116,7 @@ public class S3PlayWordTest {
 
         assertTrue("Register Player should be successful", message.getErrorMessage().size() == 0 );
         assertTrue("CurrentTurnPlayer should change from 2 to 1", game.getCurrentTurnPlayer() == 1);
-        
-
 	}
-
 
     	/*
      * "Play Word - Invalid Fields"
@@ -143,9 +137,6 @@ public class S3PlayWordTest {
         spaces.add(new PlayWordRequest.Space(6, 7, "L", true));
         spaces.add(new PlayWordRequest.Space(7, 7, "E", true));
 
-		
-
-
         //Part 1 - Invalid GameId
         request = new PlayWordRequest(1, 100, spaces);
 		Message message = new Message();
@@ -154,9 +145,7 @@ public class S3PlayWordTest {
 
         assertTrue("Service should have failed, gameId is invalid", message.getErrorMessage().size() > 0 );
         assertTrue("Incorrect Error Message provided.", message.getErrorMessage().contains("The gameId does not exist.") );
-
-
-        
+  
         //Part 2 - Game is not in playing status
         request = new PlayWordRequest(1, 1, spaces);
 		message = new Message();
@@ -165,7 +154,6 @@ public class S3PlayWordTest {
 
         assertTrue("Service should have failed, game is not in Playing status", message.getErrorMessage().size() > 0 );
         assertTrue("Incorrect Error Message provided.", message.getErrorMessage().contains("The game is not in the Playing status.") );
-
      
         //Part 3 - Invalid PlayerId
         request = new PlayWordRequest(100, 2, spaces);
@@ -176,7 +164,6 @@ public class S3PlayWordTest {
         assertTrue("Service should have failed, playerId is not valid", message.getErrorMessage().size() > 0 );
         assertTrue("Incorrect Error Message provided.", message.getErrorMessage().contains("The playerId does not exist.") );
 
-
        //Part 4 - Invalid player for the game
         request = new PlayWordRequest(3, 2, spaces);
         message = new Message();
@@ -186,7 +173,6 @@ public class S3PlayWordTest {
         assertTrue("Service should have failed, playerId is not valid", message.getErrorMessage().size() > 0 );
         assertTrue("Incorrect Error Message provided.", message.getErrorMessage().contains("The playerId is invalid for the game.") );
         
-
         //Part 5 - Not the players turn
         request = new PlayWordRequest(2, 2, spaces);
         message = new Message();
@@ -195,13 +181,6 @@ public class S3PlayWordTest {
 
         assertTrue("Service should have failed, it is not this players turn", message.getErrorMessage().size() > 0 );
         assertTrue("Incorrect Error Message provided.", message.getErrorMessage().contains("It is not this players turn.") );
-        
-
-	}
-
-
-
-    
-        
+	}      
 }
         

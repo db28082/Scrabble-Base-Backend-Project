@@ -87,14 +87,47 @@ public class GameModel {
 
 	public static GameDomainObject PlayWord(Message message, int gameId, int playerId, ArrayList<SpaceDomainObject> spaces ) {
 		//This needs to be implemented.
+		//Get the Game Details
+		try {
+			GameDataObject gameData = GameDataAccess.getGameById(gameId);
+			GameDomainObject gameDomain = new GameDomainObject(gameData);
+
+			//Validate that the gameId is in the datastore 
+			if (ValidateGameById(gameId) == true){
+				if(gameDomain.gameStatus != "Playing"){ //game status is not in the Playing status 
+					message.addErrorMessage("The game is not in the Playing status.");
+				}
+			} else {
+				message.addErrorMessage("The gameId does not exist."); //gameId does not exists in the datastore 
+			}
+
+			//Validate playerId 
+			if (PlayerModel.ValidatePlayerById(playerId) == true){
+				if(gameDomain.player1Id == playerId || gameDomain.player2Id == playerId){ //playerId is either player 1 or player 2
+					if(gameDomain.currentTurnPlayer == playerId){
+						if(playerId == 1){
+							gameData.currentTurnPlayer = 2; //next player 
+						} else {
+							gameData.currentTurnPlayer = 1;
+						}
+					} else {
+						message.addErrorMessage("It is not this players turn.");
+					}
+				} else {
+					message.addErrorMessage("The playerId is invalid for the game.");
+				}
+			} else {
+				message.addErrorMessage("The playerId does not exist.");
+			}
+		} catch (NullPointerException e) {
+			message.addErrorMessage("The gameId does not exist.");
+		}
 
         UpdatePlayerTiles(message, gameId, playerId, spaces);
         UpdateBoard(message, gameId, spaces);
         ScoreWord(message, gameId, playerId, spaces);
 
         return null;
-
-    
     }
 
 

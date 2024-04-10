@@ -90,11 +90,11 @@ public class GameModel {
 		//Get the Game Details
 		try {
 			GameDataObject gameData = GameDataAccess.getGameById(gameId);
-			GameDomainObject gameDomain = new GameDomainObject(gameData);
+			int nextPlayer = 0;
 
 			//Validate that the gameId is in the datastore 
 			if (ValidateGameById(gameId) == true){
-				if(gameDomain.gameStatus != "Playing"){ //game status is not in the Playing status 
+				if(gameData.gameStatus != "Playing"){ //game status is not in the Playing status 
 					message.addErrorMessage("The game is not in the Playing status.");
 				}
 			} else {
@@ -103,13 +103,15 @@ public class GameModel {
 
 			//Validate playerId 
 			if (PlayerModel.ValidatePlayerById(playerId) == true){
-				if(gameDomain.player1Id == playerId || gameDomain.player2Id == playerId){ //playerId is either player 1 or player 2
-					if(gameDomain.currentTurnPlayer == playerId){
-						if(playerId == 1){
-							gameData.currentTurnPlayer = 2; //next player 
-						} else {
-							gameData.currentTurnPlayer = 1;
+				if(gameData.player1Id == playerId || gameData.player2Id == playerId){ //playerId is either player 1 or player 2
+					if(gameData.currentTurnPlayer == playerId){
+						if(gameData.player1Id == playerId){
+							nextPlayer = gameData.player2Id; //if player 1 currentTurnPlayer changes to 2 
 						}
+						if (gameData.player2Id == playerId){
+							nextPlayer = gameData.player1Id; //if player 2 currentTurnPlayer changes to 1
+						}
+						gameData.currentTurnPlayer = nextPlayer;
 					} else {
 						message.addErrorMessage("It is not this players turn.");
 					}

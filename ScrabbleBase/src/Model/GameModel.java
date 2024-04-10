@@ -54,14 +54,15 @@ public class GameModel {
 
 		BoardDomainObject boardDomain = BoardModel.GetBoardDetailsByGameId(message, gameDomain.id);
 		gameDomain.board = boardDomain;
-        if (boardDomain != null) {
+        /* 
+		if (boardDomain != null) {
             if (isPlayer1) {
                 gameDomain.board.p2Tiles = "";
             } else if (isPlayer2) {
                 gameDomain.board.p1Tiles = "";
             }
         }
-
+		*/
     	return gameDomain;
 	}
 

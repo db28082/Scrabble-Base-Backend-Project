@@ -81,10 +81,18 @@ public class GameModel {
 	}
 
 	public static GameDomainObject CreateGame(Message message, GameDomainObject domainGameToCreate) {
-		//This needs to be implemented.
-        return null;
-
-	}
+		try{
+		 GameDataObject newGameData = new GameDataObject(-1,  domainGameToCreate.gameTypeId, domainGameToCreate.currentTurnPlayer, -1, "playing", domainGameToCreate.player1Id, domainGameToCreate.player2Id, 0, 0);
+ 
+		 GameDataObject data = GameDataAccess.createGame(newGameData);
+		 
+		 return new GameDomainObject(data);
+		} catch(Exception ex){
+ 
+		 message.addErrorMessage(ex.getMessage());
+			 return null;
+		}
+	 }
 
 	public static GameDomainObject PlayWord(Message message, int gameId, int playerId, ArrayList<SpaceDomainObject> spaces ) {
 		//This needs to be implemented.

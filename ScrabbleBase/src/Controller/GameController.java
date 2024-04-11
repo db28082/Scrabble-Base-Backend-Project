@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import DomainObject.GameDomainObject;
 import DomainObject.SpaceDomainObject;
 import Model.GameModel;
+import Model.GameTypeModel;
+import Model.PlayerModel;
 import restService.Message;
 import restService.Request.CreateGameRequest;
 import restService.Request.PlayWordRequest;
@@ -37,12 +39,28 @@ public class GameController {
 	}
 	public static GameResponse createGame(Message message, CreateGameRequest request) {
 		try {
+
+			if (!PlayerModel.ValidatePlayerById(request.getPlayer1Id())) {
+				message.addErrorMessage("Player1Id does not exist.");
+				return null;
+			
+			
+			if (!PlayerModel.ValidatePlayerById(request.getPlayer2Id())) {
+				message.addErrorMessage("Player2Id does not exist.");
+				return null;
+			}
+	
+			if (!GameTypeModel.ValidateGameTypeById(request.getGameTypeId())) {
+				message.addErrorMessage("GameTypeId does not exist.");
+				return null;
+			}
+
 			GameDomainObject newGame = new GameDomainObject(request);
 
 			GameDomainObject domain = GameModel.CreateGame(message, newGame);
-			//GameResponse response = new GameResponse(domain);
-			return getGameByGameIdAndPlayerId(message, domain.id, request.getPlayer1Id());
-//			return response;
+			GameResponse response = new GameResponse(domain);
+			
+		return response;
 		} catch (Exception ex) {
 			message.addErrorMessage(ex.getMessage());
 			return null;

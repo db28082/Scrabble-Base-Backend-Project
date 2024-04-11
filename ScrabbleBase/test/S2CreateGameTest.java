@@ -56,7 +56,7 @@ public class S2CreateGameTest {
         game = GameController.createGame(message, request);
         assertTrue("Create Game should have been successful", message.getErrorMessage().size() == 0 );
         assertTrue("Created game id is not sequential.", game.getGameId() == nextId );
-        assertTrue("Game status should be returned as 'Playing'", game.getStatus() == "Playing");
+        assertTrue("Game status should be returned as 'Playing'", "playing".equals(game.getStatus()));
         assertTrue("Winner Id should be returned as -1", game.getWinner() == -1);
 
         assertTrue("Player 1 Score should be returned as 0", game.getPlayer1Score() == 0);

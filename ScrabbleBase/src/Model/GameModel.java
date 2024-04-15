@@ -114,13 +114,9 @@ public class GameModel {
 			if (PlayerModel.ValidatePlayerById(playerId) == true){
 				if(gameData.player1Id == playerId || gameData.player2Id == playerId){ //playerId is either player 1 or player 2
 					if(gameData.currentTurnPlayer == playerId){
-						if(gameData.player1Id == playerId){
-							nextPlayer = gameData.player2Id; //if player 1 currentTurnPlayer changes to 2 
-						}
-						if (gameData.player2Id == playerId){
-							nextPlayer = gameData.player1Id; //if player 2 currentTurnPlayer changes to 1
-						}
-						gameData.currentTurnPlayer = nextPlayer;
+						UpdatePlayerTiles(message, gameId, playerId, spaces);
+						UpdateBoard(message, gameId, spaces);
+						currentTurnPlayerChange(gameData, playerId);
 					} else {
 						message.addErrorMessage("It is not this players turn.");
 					}
@@ -134,8 +130,6 @@ public class GameModel {
 			message.addErrorMessage("The gameId does not exist.");
 		}
 
-        UpdatePlayerTiles(message, gameId, playerId, spaces);
-        UpdateBoard(message, gameId, spaces);
         ScoreWord(message, gameId, playerId, spaces);
 
         return null;
@@ -148,15 +142,77 @@ public class GameModel {
 
     } 
 
-
     public static void UpdateBoard(Message message, int gameId, ArrayList<SpaceDomainObject> spaces) {
 		//This needs to be implemented.
+		GameDataObject gameData = GameDataAccess.getGameById(gameId);
+		BoardDataObject tileData = BoardDataAccess.getBoardByGameId(gameId);
+		int m = 0, n = 0, indexPlacement = 0;
+		String letter; 
+		char[] character = new char [spaces.size()]; 
+		StringBuilder ab = new StringBuilder(tileData.board);
+
+		for(int i = 0; i < spaces.size(); i++){
+			m = spaces.get(i).row; // row 
+			n = spaces.get(i).column; //col
+			indexPlacement = (m-1) * 15 + (n-1);
+			letter = spaces.get(i).letter;
+			character[i] = letter.charAt(0);
+			ab.setCharAt(indexPlacement, character[i]);
+			tileData.board = ab.toString();
+		}
     }
 
     public static void UpdatePlayerTiles(Message message, int gameId, int playerId, ArrayList<SpaceDomainObject> spaces) {
 		//This needs to be implemented.
+		/*Validate tiles played by the player are in their list of tiles*/
+		GameDataObject gameData = GameDataAccess.getGameById(gameId);
+		BoardDataObject tileData = BoardDataAccess.getBoardByGameId(gameId);
+		ArrayList <String> tiles = new ArrayList();
+
+		for (int i=0; i < spaces.size(); i++) { //get the letters from spaces array 
+			tiles.add(spaces.get(i).letter);
+		}
+
+		boolean isValid = true; 
+		String replacedTileData;
+
+		for(String space: tiles){ //loop through tiles array (containing letters from spaces array)
+			if(gameData.player1Id == playerId){ //PLAYER 1
+				if(tileData.p1Tiles.contains(space)){
+					replacedTileData = tileData.p1Tiles.replaceFirst(space, "*");
+					tileData.p1Tiles = replacedTileData; //updates the player's tiles of the tiles that they played (replaced by *)
+				} else {
+					isValid = false;
+					tileData.p1Tiles = null; //the board cannot be updated due to the player playing an invalid tile
+				}
+			}
+
+			if (gameData.player2Id == playerId){
+				if(tileData.p2Tiles.contains(space)){
+					replacedTileData = tileData.p2Tiles.replaceFirst(space, "*");
+					tileData.p2Tiles = replacedTileData;
+				} else {
+					isValid = false;
+					tileData.p2Tiles = null;
+				}
+			}	
+
+			if(isValid == false){
+				message.addErrorMessage("Player played an invalid tile.");
+			}
+		}		
     }
 
+	public static void currentTurnPlayerChange(GameDataObject gameData, int playerId) {
+		int nextPlayer = 0;
+		if(gameData.player1Id == playerId){
+			nextPlayer = gameData.player2Id; //if player 1 currentTurnPlayer changes to 2 
+		}
+		if (gameData.player2Id == playerId){
+			nextPlayer = gameData.player1Id; //if player 2 currentTurnPlayer changes to 1
+		}
+		gameData.currentTurnPlayer = nextPlayer;
+	}
 
     public static void ScoreWord (Message message, int gameId, int playerId, ArrayList<SpaceDomainObject> spaces) {
 		//This needs to be implemented.

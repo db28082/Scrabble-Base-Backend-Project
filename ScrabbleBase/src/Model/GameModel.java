@@ -54,7 +54,7 @@ public class GameModel {
 
 		BoardDomainObject boardDomain = BoardModel.GetBoardDetailsByGameId(message, gameDomain.id);
 		gameDomain.board = boardDomain;
-        /* 
+         
 		if (boardDomain != null) {
             if (isPlayer1) {
                 gameDomain.board.p2Tiles = "";
@@ -62,7 +62,7 @@ public class GameModel {
                 gameDomain.board.p1Tiles = "";
             }
         }
-		*/
+	
     	return gameDomain;
 	}
 
@@ -84,6 +84,7 @@ public class GameModel {
 		try{
 		 GameDataObject newGameData = new GameDataObject(-1,  domainGameToCreate.gameTypeId, domainGameToCreate.currentTurnPlayer, -1, "playing", domainGameToCreate.player1Id, domainGameToCreate.player2Id, 0, 0);
  
+		 
 		 GameDataObject data = GameDataAccess.createGame(newGameData);
 		 
 		 return new GameDomainObject(data);

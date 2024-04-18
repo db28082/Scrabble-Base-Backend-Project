@@ -43,8 +43,10 @@ public class GameDataAccess {
 	}
 
 	public static GameDataObject createGame(GameDataObject data) {
-		//This needs to be implemented.
-        return null;
+		int nextId = getNextId();
+        data.id = nextId; // Assigning the next available ID
+        games.add(data); // Adding the new game to the list of games
+        return data; // Returning the newly created game object
 	}
 
 }

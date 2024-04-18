@@ -2,9 +2,10 @@ package Controller;
 
 import java.util.ArrayList;
 
-
+import DomainObject.BoardDomainObject;
 import DomainObject.GameDomainObject;
 import DomainObject.SpaceDomainObject;
+import Model.BoardModel;
 import Model.GameModel;
 import Model.GameTypeModel;
 import Model.PlayerModel;
@@ -40,16 +41,19 @@ public class GameController {
 	public static GameResponse createGame(Message message, CreateGameRequest request) {
 		try {
 
+			// Check if player1Id exists
 			if (!PlayerModel.ValidatePlayerById(request.getPlayer1Id())) {
 				message.addErrorMessage("Player1Id does not exist.");
 				return null;
-			
-			
+			}
+	
+			// Check if player2Id exists
 			if (!PlayerModel.ValidatePlayerById(request.getPlayer2Id())) {
 				message.addErrorMessage("Player2Id does not exist.");
 				return null;
 			}
 	
+			// Check if gameTypeId exists
 			if (!GameTypeModel.ValidateGameTypeById(request.getGameTypeId())) {
 				message.addErrorMessage("GameTypeId does not exist.");
 				return null;
@@ -58,9 +62,13 @@ public class GameController {
 			GameDomainObject newGame = new GameDomainObject(request);
 
 			GameDomainObject domain = GameModel.CreateGame(message, newGame);
+			BoardDomainObject board = BoardModel.CreateBoard(message, domain.id, domain.gameTypeId);
+			domain.board = board;
+
 			GameResponse response = new GameResponse(domain);
+		
 			
-		return response;
+			return response;
 		} catch (Exception ex) {
 			message.addErrorMessage(ex.getMessage());
 			return null;

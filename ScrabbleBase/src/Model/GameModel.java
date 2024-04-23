@@ -98,10 +98,8 @@ public class GameModel {
 	public static GameDomainObject PlayWord(Message message, int gameId, int playerId, ArrayList<SpaceDomainObject> spaces ) {
 		//This needs to be implemented.
 		//Get the Game Details
+		GameDataObject gameData = GameDataAccess.getGameById(gameId);
 		try {
-			GameDataObject gameData = GameDataAccess.getGameById(gameId);
-			int nextPlayer = 0;
-
 			//Validate that the gameId is in the datastore 
 			if (ValidateGameById(gameId) == true){
 				if(gameData.gameStatus != "Playing"){ //game status is not in the Playing status 
@@ -110,25 +108,25 @@ public class GameModel {
 			} else {
 				message.addErrorMessage("The gameId does not exist."); //gameId does not exists in the datastore 
 			}
-
-			//Validate playerId 
-			if (PlayerModel.ValidatePlayerById(playerId) == true){
-				if(gameData.player1Id == playerId || gameData.player2Id == playerId){ //playerId is either player 1 or player 2
-					if(gameData.currentTurnPlayer == playerId){
-						UpdatePlayerTiles(message, gameId, playerId, spaces);
-						UpdateBoard(message, gameId, spaces);
-						currentTurnPlayerChange(gameData, playerId);
-					} else {
-						message.addErrorMessage("It is not this players turn.");
-					}
-				} else {
-					message.addErrorMessage("The playerId is invalid for the game.");
-				}
-			} else {
-				message.addErrorMessage("The playerId does not exist.");
-			}
 		} catch (NullPointerException e) {
 			message.addErrorMessage("The gameId does not exist.");
+		}
+
+		//Validate playerId 
+		if (PlayerModel.ValidatePlayerById(playerId) == true){
+			if(gameData.player1Id == playerId || gameData.player2Id == playerId){ //playerId is either player 1 or player 2
+				if(gameData.currentTurnPlayer == playerId){
+					UpdatePlayerTiles(message, gameId, playerId, spaces);
+					UpdateBoard(message, gameId, spaces);
+					currentTurnPlayerChange(gameData, playerId);
+				} else {
+					message.addErrorMessage("It is not this players turn.");
+				}
+			} else {
+				message.addErrorMessage("The playerId is invalid for the game.");
+			}
+		} else {
+			message.addErrorMessage("The playerId does not exist.");
 		}
 
         ScoreWord(message, gameId, playerId, spaces);
@@ -151,15 +149,20 @@ public class GameModel {
 		String letter; 
 		char[] character = new char [spaces.size()]; 
 		StringBuilder ab = new StringBuilder(tileData.board);
-
+		boolean validUpdate = true;
+	
 		for(int i = 0; i < spaces.size(); i++){
-			m = spaces.get(i).row; // row 
-			n = spaces.get(i).column; //col
-			indexPlacement = (m-1) * 15 + (n-1);
-			letter = spaces.get(i).letter;
-			character[i] = letter.charAt(0);
-			ab.setCharAt(indexPlacement, character[i]);
-			tileData.board = ab.toString();
+			if(message.getErrorMessage().size() > 0){
+				validUpdate = false;
+			} else {
+				m = spaces.get(i).row; // row 
+				n = spaces.get(i).column; //col
+				indexPlacement = (m-1) * 15 + (n-1);
+				letter = spaces.get(i).letter;
+				character[i] = letter.charAt(0);
+				ab.setCharAt(indexPlacement, character[i]);
+				tileData.board = ab.toString();
+			}
 		}
     }
 
@@ -168,41 +171,110 @@ public class GameModel {
 		/*Validate tiles played by the player are in their list of tiles*/
 		GameDataObject gameData = GameDataAccess.getGameById(gameId);
 		BoardDataObject tileData = BoardDataAccess.getBoardByGameId(gameId);
-		ArrayList <String> tiles = new ArrayList();
+		boolean isValid; 
+		String replacedTileData, word = "";
 
-		for (int i=0; i < spaces.size(); i++) { //get the letters from spaces array 
-			tiles.add(spaces.get(i).letter);
+		for(SpaceDomainObject space: spaces){
+			word += space.letter;
 		}
 
-		boolean isValid = true; 
-		String replacedTileData;
-
-		for(String space: tiles){ //loop through tiles array (containing letters from spaces array)
-			if(gameData.player1Id == playerId){ //PLAYER 1
-				if(tileData.p1Tiles.contains(space)){
-					replacedTileData = tileData.p1Tiles.replaceFirst(space, "*");
-					tileData.p1Tiles = replacedTileData; //updates the player's tiles of the tiles that they played (replaced by *)
-				} else {
-					isValid = false;
-					tileData.p1Tiles = null; //the board cannot be updated due to the player playing an invalid tile
+		for(SpaceDomainObject space: spaces){
+			if(tileData.board.contains(word)){
+				isValid = true;
+			} else {
+				if(gameData.player1Id == playerId){
+					if(tileData.p1Tiles.contains(space.letter)){
+						if(space.isMyLetter == true){
+							replacedTileData = tileData.p1Tiles.replaceFirst(space.letter, "*");
+							tileData.p1Tiles = replacedTileData; //updates the player's tiles of the tiles that they played (replaced by *)	
+						}
+					} else {
+						isValid = false; 
+						if(space.isMyLetter != false){
+							message.addErrorMessage("Player played an invalid tile.");
+						}
+					}
 				}
-			}
-
-			if (gameData.player2Id == playerId){
-				if(tileData.p2Tiles.contains(space)){
-					replacedTileData = tileData.p2Tiles.replaceFirst(space, "*");
-					tileData.p2Tiles = replacedTileData;
-				} else {
-					isValid = false;
-					tileData.p2Tiles = null;
+				if(gameData.player2Id == playerId){
+					if(tileData.p2Tiles.contains(space.letter)){
+						if(space.isMyLetter == true){
+							replacedTileData = tileData.p2Tiles.replaceFirst(space.letter, "*");
+							tileData.p2Tiles = replacedTileData; //updates the player's tiles of the tiles that they played (replaced by *)
+						}
+					} else {
+						isValid = false;
+						if(space.isMyLetter != false){
+							message.addErrorMessage("Player played an invalid tile.");
+						}
+					}
 				}
-			}	
-
-			if(isValid == false){
-				message.addErrorMessage("Player played an invalid tile.");
-			}
-		}		
+			} 
+		}
+		ReassignPlayerTiles(tileData, gameId, playerId);	
     }
+
+	public static void ReassignPlayerTiles(BoardDataObject tileData, int gameId, int playerId){
+		GameDataObject gameData = GameDataAccess.getGameById(gameId);
+		char[] letterBag = tileData.letterBag.toCharArray();
+		StringBuilder newTiles;
+		StringBuilder replacementTiles = new StringBuilder(tileData.letterBag);
+
+		if(gameData.player1Id == playerId){
+			newTiles = new StringBuilder(tileData.p1Tiles);
+			for(int i = 0; i < tileData.p1Tiles.length(); i++){
+				for(int j = 0; j < letterBag.length; j++){
+					if(tileData.p1Tiles.charAt(i) == '*'){
+						if(letterBag[j] != '*'){
+							newTiles.setCharAt(i, letterBag[j]);
+							replacementTiles.setCharAt(j, '*');
+							letterBag[j] = '*';
+							j = letterBag.length;
+						}
+					} else {
+						j = letterBag.length;
+					}
+				}
+			}
+			if(tileData.letterBag.length() < tileData.p1Tiles.length()){
+				for(int i = 0; i < newTiles.length(); i++){
+					if(newTiles.charAt(i) == '*'){
+						newTiles.deleteCharAt(i);
+						i = 0;
+					}
+				}
+			}
+			tileData.p1Tiles = newTiles.toString();
+			tileData.letterBag = replacementTiles.toString();
+		}
+
+		if(gameData.player2Id == playerId){
+			newTiles = new StringBuilder(tileData.p2Tiles);
+			for(int i = 0; i < tileData.p2Tiles.length(); i++){
+				for(int j = 0; j < letterBag.length; j++){
+					if(tileData.p2Tiles.charAt(i) == '*'){
+						if(letterBag[j] != '*'){
+							newTiles.setCharAt(i, letterBag[j]);
+							replacementTiles.setCharAt(j, '*');
+							letterBag[j] = '*';
+							j = letterBag.length;
+						}
+					} else {
+						j = letterBag.length;
+					}
+				}
+			}
+			if(tileData.letterBag.length() < tileData.p2Tiles.length()){
+				for(int i = 0; i < newTiles.length(); i++){
+					if(newTiles.charAt(i) == '*'){
+						newTiles.deleteCharAt(i);
+						i = 0;
+					}
+				}
+			}
+			tileData.p2Tiles = newTiles.toString();
+			tileData.letterBag = replacementTiles.toString();
+		}
+	}
 
 	public static void currentTurnPlayerChange(GameDataObject gameData, int playerId) {
 		int nextPlayer = 0;

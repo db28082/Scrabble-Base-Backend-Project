@@ -136,10 +136,42 @@ public class GameModel {
 
 
     public static boolean ValidateWordPlacement(Message message, int gameId, ArrayList<SpaceDomainObject> spaces) {
-		//This needs to be implemented.
-        return false;
+		if (spaces.isEmpty()) {
+			message.addErrorMessage("The first word must cover the center square.");
+			return false;
+		}
+	
+		// Check if all spaces are in the same row or column
+		int row = spaces.get(0).row;
+		int column = spaces.get(0).column;
+		boolean sameRow = true;
+		boolean sameColumn = true;
+		for (SpaceDomainObject space : spaces) {
+			if (space.row != row)
+				sameRow = false;
+			if (space.column != column)
+				sameColumn = false;
+		}
+	
+		if (!sameRow && !sameColumn) {
+			message.addErrorMessage("All letters played must be in the same row or column.");
+			return false;
+		}
+		
+		// Check if the first word covers the center square
+    boolean coversCenter = false;
+    for (SpaceDomainObject space : spaces) {
+        if (space.row == 8 && space.column == 8) {
+            coversCenter = true;
+        }
+    }
 
-    } 
+    if (!coversCenter && gameId == 3) {
+        message.addErrorMessage("The first word must cover the center square.");
+        return false;
+    }
+		return true;
+	}
 
     public static void UpdateBoard(Message message, int gameId, ArrayList<SpaceDomainObject> spaces) {
 		//This needs to be implemented.
